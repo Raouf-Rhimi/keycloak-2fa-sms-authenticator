@@ -1,4 +1,4 @@
-package Eca.legitimation.service;
+package keycloak.sms.service;
 
 import org.keycloak.Config;
 import org.keycloak.authentication.Authenticator;
@@ -22,12 +22,12 @@ public class SmsAuthenticatorFactory implements AuthenticatorFactory {
 
 	@Override
 	public String getDisplayType() {
-		return "ECA SMS";
+		return "SMS";
 	}
 
 	@Override
 	public String getHelpText() {
-		return "Validates an OTP sent via SMS to the user mobile phone.";
+		return "Envoyer un OTP via SMS";
 	}
 
 	@Override
@@ -53,10 +53,10 @@ public class SmsAuthenticatorFactory implements AuthenticatorFactory {
 	@Override
 	public List<ProviderConfigProperty> getConfigProperties() {
 		return List.of(
-			new ProviderConfigProperty("length", "Code length", "The number of digits of the generated code.", ProviderConfigProperty.STRING_TYPE, 6),
-			new ProviderConfigProperty("ttl", "Time-to-live", "The time to live in seconds for the code to be valid.", ProviderConfigProperty.STRING_TYPE, "300"),
-			new ProviderConfigProperty("senderId", "SenderId", "The sender ID is displayed as the message sender on the receiving device.", ProviderConfigProperty.STRING_TYPE, "Keycloak"),
-			new ProviderConfigProperty("simulation", "Simulation mode", "In simulation mode, the SMS won't be sent, but printed to the server logs", ProviderConfigProperty.BOOLEAN_TYPE, true)
+			new ProviderConfigProperty("length", "Code length", "le nombre des chiffres dans le code OTP", ProviderConfigProperty.STRING_TYPE, 6),
+			new ProviderConfigProperty("ttl", "Time-to-live", "le nombre des secondes le code OTP sera valide", ProviderConfigProperty.STRING_TYPE, "300"),
+			new ProviderConfigProperty("senderId", "SenderId", "Le nom de l'expéditeur qui s'affichera sur le téléphone du récépteur.", ProviderConfigProperty.STRING_TYPE, "Keycloak"),
+			new ProviderConfigProperty("simulation", "Simulation mode", "En mode simulation, le code ne sera pas envoyé par SMS.Par contre, il va être affiché dans les journaux du serveur.", ProviderConfigProperty.BOOLEAN_TYPE, true)
 		);
 	}
 

@@ -1,6 +1,6 @@
-package Eca.legitimation.service;
+package keycloak.sms.service;
 
-import Eca.legitimation.service.gateway.SmsServiceFactory;
+import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
@@ -20,6 +20,7 @@ import java.util.Locale;
 public class SmsAuthenticator implements Authenticator {
 
 	private static final String TPL_CODE = "login-sms.ftl";
+	private static final Logger LOG = Logger.getLogger(SmsAuthenticator.class);
 
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
@@ -27,47 +28,46 @@ public class SmsAuthenticator implements Authenticator {
 		KeycloakSession session = context.getSession();
 		UserModel user = context.getUser();
 
-		String mobileNumber = user.getFirstAttribute("mobile_number");
-		// mobileNumber of course has to be further validated on proper format, country code, ...
+		String mobileNumber = user.getFirstAttribute("Téléphone");
 
-		int length = Integer.parseInt(config.getConfig().get("length"));
-		int ttl = Integer.parseInt(config.getConfig().get("ttl"));
-
-		String code = SecretGenerator.getInstance().randomString(length, SecretGenerator.DIGITS);
-		AuthenticationSessionModel authSession = context.getAuthenticationSession();
-		authSession.setAuthNote("code", code);
-		authSession.setAuthNote("ttl", Long.toString(System.currentTimeMillis() + (ttl * 1000L)));
-
-		try {
-			Theme theme = session.theme().getTheme(Theme.Type.LOGIN);
-			Locale locale = session.getContext().resolveLocale(user);
-			String smsAuthText = theme.getMessages(locale).getProperty("smsAuthText");
-			String smsText = String.format(smsAuthText, code, Math.floorDiv(ttl, 60));
-
-			SmsServiceFactory.get(config.getConfig()).send(mobileNumber, smsText);
-
-			context.challenge(context.form().setAttribute("realm", context.getRealm()).createForm(TPL_CODE));
-		} catch (Exception e) {
-			context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
-				context.form().setError("smsAuthSmsNotSent", e.getMessage())
-					.createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
+		if(mobileNumber.length()>0 && !mobileNumber.equals(null)) {
+			int length = Integer.parseInt(config.getConfig().get("length"));
+			int ttl = Integer.parseInt(config.getConfig().get("ttl"));
+			String code = SecretGenerator.getInstance().randomString(length, SecretGenerator.DIGITS);
+			AuthenticationSessionModel authSession = context.getAuthenticationSession();
+			authSession.setAuthNote("code", code);
+			authSession.setAuthNote("ttl", Long.toString(System.currentTimeMillis() + (ttl * 1000L)));
+			try {
+				Theme theme = session.theme().getTheme(Theme.Type.LOGIN);
+				Locale locale = session.getContext().resolveLocale(user);
+				String smsAuthText = theme.getMessages(locale).getProperty("smsAuthText");
+				String smsText = String.format(smsAuthText, code, Math.floorDiv(ttl, 60));
+				boolean inSimulationMode = Boolean.parseBoolean(config.getConfig().get("simulation"));
+				if(inSimulationMode) {
+					LOG.warn(String.format("***** SIMULATION MODE ***** Sending SMS to %s with text: %s", mobileNumber, smsText));
+				}else{
+					sendSMS(mobileNumber, smsText);
+				}
+				context.challenge(context.form().setAttribute("realm", context.getRealm()).createForm(TPL_CODE));
+			} catch (Exception e) {
+				context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
+					context.form().setError("smsAuthSmsNotSent", e.getMessage())
+						.createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
+			}
 		}
 	}
 
 	@Override
 	public void action(AuthenticationFlowContext context) {
 		String enteredCode = context.getHttpRequest().getDecodedFormParameters().getFirst("code");
-
 		AuthenticationSessionModel authSession = context.getAuthenticationSession();
 		String code = authSession.getAuthNote("code");
 		String ttl = authSession.getAuthNote("ttl");
-
 		if (code == null || ttl == null) {
 			context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
 				context.form().createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
 			return;
 		}
-
 		boolean isValid = enteredCode.equals(code);
 		if (isValid) {
 			if (Long.parseLong(ttl) < System.currentTimeMillis()) {
@@ -98,17 +98,19 @@ public class SmsAuthenticator implements Authenticator {
 
 	@Override
 	public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {
-		return user.getFirstAttribute("mobile_number") != null;
+		return user.getFirstAttribute("Téléphone") != null;
 	}
 
 	@Override
 	public void setRequiredActions(KeycloakSession session, RealmModel realm, UserModel user) {
-		// this will only work if you have the required action from here configured:
-		user.addRequiredAction("mobile-number-ra");
 	}
 
 	@Override
 	public void close() {
 	}
+
+	public void sendSMS(String phoneNumber, String message){
+		//here we have to call the API tha sends the OTP via SMS
+		LOG.info(String.format("***** OTP has been sent !! ***** "));	}
 
 }
