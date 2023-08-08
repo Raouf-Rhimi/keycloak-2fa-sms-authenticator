@@ -23,12 +23,12 @@ public class SmsAuthenticatorFactory implements AuthenticatorFactory {
 	@Override
 	public String getDisplayType() {
 		return "SMS";
-	}
+	} // This is the name of the Execution Step that will be displayed in Keycloak flow list.
 
 	@Override
 	public String getHelpText() {
-		return "Envoyer un OTP via SMS";
-	}
+		return "Sends an OTP via SMS";
+	} // Just a description of the Execution Step
 
 	@Override
 	public String getReferenceCategory() {
@@ -53,10 +53,10 @@ public class SmsAuthenticatorFactory implements AuthenticatorFactory {
 	@Override
 	public List<ProviderConfigProperty> getConfigProperties() {
 		return List.of(
-			new ProviderConfigProperty("length", "Code length", "le nombre des chiffres dans le code OTP", ProviderConfigProperty.STRING_TYPE, 6),
-			new ProviderConfigProperty("ttl", "Time-to-live", "le nombre des secondes le code OTP sera valide", ProviderConfigProperty.STRING_TYPE, "300"),
-			new ProviderConfigProperty("senderId", "SenderId", "Le nom de l'expéditeur qui s'affichera sur le téléphone du récépteur.", ProviderConfigProperty.STRING_TYPE, "Keycloak"),
-			new ProviderConfigProperty("simulation", "Simulation mode", "En mode simulation, le code ne sera pas envoyé par SMS.Par contre, il va être affiché dans les journaux du serveur.", ProviderConfigProperty.BOOLEAN_TYPE, true)
+			new ProviderConfigProperty("length", "Code length", "Number of Digits in the OTP.", ProviderConfigProperty.STRING_TYPE, 6),
+			new ProviderConfigProperty("ttl", "Time-to-live", "Duration in seconds in which the OTP will be Valid.", ProviderConfigProperty.STRING_TYPE, "300"),
+			new ProviderConfigProperty("senderId", "SenderId", "Name of the sender that will be displayed in receiver's screen.", ProviderConfigProperty.STRING_TYPE, "Keycloak"),
+			new ProviderConfigProperty("simulation", "Simulation mode", "In simulation mode, the OTP will not be sent. It will be just logged in the server logs journal.", ProviderConfigProperty.BOOLEAN_TYPE, true)
 		);
 	}
 

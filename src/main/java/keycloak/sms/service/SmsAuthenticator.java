@@ -28,9 +28,9 @@ public class SmsAuthenticator implements Authenticator {
 		KeycloakSession session = context.getSession();
 		UserModel user = context.getUser();
 
-		String mobileNumber = user.getFirstAttribute("Téléphone");
+		String mobileNumber = user.getFirstAttribute("Téléphone"); // You have to change the attribute name based on your requirement
 
-		if(mobileNumber.length()>0 && !mobileNumber.equals(null)) {
+		if(!mobileNumber.isEmpty()) {
 			int length = Integer.parseInt(config.getConfig().get("length"));
 			int ttl = Integer.parseInt(config.getConfig().get("ttl"));
 			String code = SecretGenerator.getInstance().randomString(length, SecretGenerator.DIGITS);
@@ -44,8 +44,10 @@ public class SmsAuthenticator implements Authenticator {
 				String smsText = String.format(smsAuthText, code, Math.floorDiv(ttl, 60));
 				boolean inSimulationMode = Boolean.parseBoolean(config.getConfig().get("simulation"));
 				if(inSimulationMode) {
+					// we write the OTP in the server logs.
 					LOG.warn(String.format("***** SIMULATION MODE ***** Sending SMS to %s with text: %s", mobileNumber, smsText));
 				}else{
+					// we send the OTO via SMS using the following method
 					sendSMS(mobileNumber, smsText);
 				}
 				context.challenge(context.form().setAttribute("realm", context.getRealm()).createForm(TPL_CODE));
