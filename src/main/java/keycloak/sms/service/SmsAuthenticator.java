@@ -28,7 +28,7 @@ public class SmsAuthenticator implements Authenticator {
 		KeycloakSession session = context.getSession();
 		UserModel user = context.getUser();
 
-		String mobileNumber = user.getFirstAttribute("Téléphone"); // You have to change the attribute name based on your requirement
+		String mobileNumber = user.getFirstAttribute("phone"); // You have to change the attribute name based on your requirement
 
 		if(!mobileNumber.isEmpty()) {
 			int length = Integer.parseInt(config.getConfig().get("length"));
@@ -100,7 +100,7 @@ public class SmsAuthenticator implements Authenticator {
 
 	@Override
 	public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {
-		return user.getFirstAttribute("Téléphone") != null;
+		return user.getFirstAttribute("phone") != null;
 	}
 
 	@Override
